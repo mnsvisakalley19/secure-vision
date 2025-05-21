@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Secure Vision</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="secure_vision_logo.png" type="image/png" />
+    <style>
+        body {
+            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            color: white;
+        }
+
+        nav {
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1em 2em;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00e6e6;
+        }
+
+        .hamburger {
+            font-size: 30px;
+            cursor: pointer;
+            display: block;
+            color: white;
+        }
+
+        .hamburger-menu {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .hamburger-menu a {
+            color: white;
+            display: block;
+            margin-bottom: 10px;
+            text-decoration: none;
+        }
+
+        .hamburger-menu a:hover {
+            color: #00e6e6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2em auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        h2, h3 {
+            color: #00e6e6;
+            text-align: center;
+            margin-bottom: 1em;
+        }
+
+        form.upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        form.upload-form input[type="file"] {
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        form.upload-form button {
+            padding: 10px 20px;
+            background: #00e6e6;
+            color: #0f2027;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .message {
+            text-align: center;
+            color: lime;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .documents {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 2em;
+        }
+
+        .doc-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            width: 250px;
+            padding: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .doc-card i {
+            font-size: 40px;
+            color: #00e6e6;
+            margin-bottom: 10px;
+        }
+
+        .doc-card a {
+            color: #00e6e6;
+            word-break: break-all;
+        }
+
+        .delete-form {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .delete-form button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .no-docs {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .profile-sidebar {
+    position: fixed;
+    top: 0;
+    right: -300px;
+    height: 100%;
+    width: 300px;
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    box-shadow: -4px 0 10px rgba(0, 0, 0, 0.5);
+    transition: right 0.3s ease-in-out;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 60px;
+}
+
+.profile-sidebar .sidebar-content {
+    text-align: center;
+}
+
+.profile-sidebar .profile-pic {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+    border: 2px solid #00e6e6;
+}
+
+.profile-sidebar .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #00e6e6;
+}
+
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i> Secure Vision
+        </div>
+        <div class="hamburger" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+        <div class="hamburger-menu" id="hamburger-menu">
+            <a href="/profile/">Profile</a>
+            <a href="/logout/">Logout</a>
+            <!-- Profile Sidebar -->
+<div class="profile-sidebar" id="profileSidebar">
+    <div class="sidebar-content">
+        <span class="close-btn" onclick="toggleSidebar()">&times;</span>
+        <img src="{{ user.faces.image.url }}" alt="User Image" class="profile-pic">
+        <h3>{{ user.username }}</h3>
+    </div>
+</div>
+
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Upload Your Document</h2>
+        <form method="post" enctype="multipart/form-data" class="upload-form">
+            {% csrf_token %}
+            {{ form.file.label_tag }} {{ form.file }}
+            <button type="submit">Upload</button>
+        </form>
+
+        {% if success_message %}
+            <p class="message">{{ success_message }}</p>
+        {% endif %}
+
+        <h3>Your Uploaded Documents</h3>
+        <div class="documents">
+            {% for doc in documents %}
+                <div class="doc-card">
+                    <form method="post" action="{% url 'delete_document' doc.id %}" class="delete-form">
+                        {% csrf_token %}
+                        <button type="submit">Delete</button>
+                    </form>
+                    <p><strong>File:</strong> <a href="{{ doc.file.url }}" target="_blank">{{ doc.file.name }}</a></p>
+                    <p><strong>Uploaded at:</strong> {{ doc.uploaded_at }}</p>
+                </div>
+            {% empty %}
+                <p class="no-docs">No documents uploaded yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('hamburger-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+       
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('hamburger-menu');
+            const hamburger = document.querySelector('.hamburger');
+            if (!hamburger.contains(event.target) && !menu.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+</script>
+<script>
+    function toggleMenu() {
+        const menu = document.getElementById('hamburger-menu');
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('hamburger-menu');
+        const hamburger = document.querySelector('.hamburger');
+        const sidebar = document.getElementById('profileSidebar');
+        if (!hamburger.contains(event.target) && !menu.contains(event.target) && !sidebar.contains(event.target)) {
+            menu.style.display = 'none';
+            sidebar.style.right = '-300px';
+        }
+    });
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('profileSidebar');
+        sidebar.style.right = sidebar.style.right === '0px' ? '-300px' : '0px';
+    }
+
+    // Add this to attach click on Profile
+    document.addEventListener('DOMContentLoaded', function () {
+        const profileLink = document.querySelector('.hamburger-menu a[href="/profile/"]');
+        if (profileLink) {
+            profileLink.addEventListener('click', function (e) {
+                e.preventDefault();
+                toggleSidebar();
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

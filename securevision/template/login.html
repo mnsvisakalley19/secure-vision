@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login | Secure_Vision</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" href="secure_vision_logo.png" type="image/png" />
+  <style>
+    body {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    .login-container {
+      background-color: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+    }
+
+    .login-container h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #00e6e6;
+    }
+
+    .login-container input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    video, canvas {
+      width: 100%;
+      max-height: 250px;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      object-fit: cover;
+    }
+
+    #canvas {
+      display: none;
+    }
+
+    #capture-button, #login-button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      transition: 0.3s;
+    }
+
+    #capture-button {
+      background-color: #00e6e6;
+      color: #0f2027;
+    }
+
+    #login-button {
+      background-color: white;
+      color: #0f2027;
+    }
+
+    #capture-button:hover {
+      background-color: #00c9c9;
+    }
+
+    #login-button:hover {
+      background-color: #e6e6e6;
+    }
+
+    #message {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #00e6e6;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2><i class="fas fa-sign-in-alt"></i> LOGIN</h2>
+    <form id="login-form">
+      <input type="text" id="username" name="username" placeholder="Enter your name" required>
+      <canvas id="canvas"></canvas>
+      <video id="video" autoplay></video>
+      <button type="button" id="capture-button">Capture Face</button>
+      <button type="submit" id="login-button">Login</button>
+    </form>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureButton = document.getElementById('capture-button');
+    const loginForm = document.getElementById('login-form');
+    const messageDiv = document.getElementById('message');
+
+    let capturedImage = null;
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        console.error("Error accessing webcam: ", err);
+        messageDiv.innerText = "Error accessing webcam. Please check your camera settings.";
+      });
+
+    captureButton.addEventListener('click', () => {
+      if (!video.srcObject) {
+        messageDiv.innerText = "Webcam not available. Please check your camera settings.";
+        return;
+      }
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      capturedImage = canvas.toDataURL('image/jpeg');
+      messageDiv.innerText = "Face captured!";
+    });
+
+    loginForm.onsubmit = async (e) => {
+      e.preventDefault();
+
+      if (!capturedImage) {
+        messageDiv.innerText = "Please capture your face before logging in.";
+        return;
+      }
+
+      const formData = new FormData(loginForm);
+      formData.append('face_image', capturedImage);
+
+      try {
+        const response = await fetch('/login/', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          messageDiv.innerText = data.message || "Login successful!";
+          messageDiv.style.color = "lime";
+          window.location.href = data.redirect_url || '/dashboard/';
+        } else {
+          messageDiv.innerText = data.message || "Login failed.";
+          messageDiv.style.color = "red";
+        }
+
+      } catch (error) {
+        console.error("Login error: ", error);
+        messageDiv.innerText = "An error occurred during login.";
+        messageDiv.style.color = "red";
+      }
+    };
+
+    window.addEventListener('beforeunload', function () {
+      navigator.sendBeacon('/logout/');
+    });
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === 'hidden') {
+        navigator.sendBeacon('/logout/');
+      }
+    });
+  </script>
+</body>
+</html>
